@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@prisma/client": "^5.15.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1",
+    "web3": "^4.9.0"
+  }
+}
