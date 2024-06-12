@@ -7,7 +7,13 @@ import cors from 'cors';
 const app = express();
 
 // CORS configuration
-app.use(cors());
+app.use(cors({
+  methods: ['GET', 'POST', 'OPTIONS'], // Add other methods needed
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: true,
+  origin: '*' // Or specify origins you want to allow
+}));
+
 
 
 const prisma = new PrismaClient();
