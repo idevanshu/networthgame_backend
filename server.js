@@ -6,14 +6,8 @@ const cors = require('cors');
 
 const app = express();
 
-const corsOptions = {
-  origin: '*',
-  optionsSuccessStatus: 200,
-  methods: "GET, POST, PUT, DELETE",
-  credentials: true
-};
-
-app.use(cors(corsOptions));
+// Correct CORS configuration
+app.use(cors());
 
 const prisma = new PrismaClient();
 const redis = new Redis();
@@ -32,15 +26,19 @@ app.post('/api/userdata', async (req, res) => {
   const { address } = req.body;
   const name = generateUserName(address);
 
+  console.log(`Received request for address: ${address}`);
+
   try {
     const balance = await web3.eth.getBalance(address);
     const ethHoldings = web3.utils.fromWei(balance, 'ether');
+    console.log(`Fetched balance for ${address}: ${ethHoldings} ETH`);
 
     let user = await prisma.user.findUnique({
       where: { address }
     });
 
     if (!user) {
+      console.log(`Creating new user for address: ${address}`);
       user = await prisma.user.create({
         data: {
           address,
@@ -50,6 +48,7 @@ app.post('/api/userdata', async (req, res) => {
         },
       });
     } else {
+      console.log(`Updating existing user for address: ${address}`);
       user = await prisma.user.update({
         where: { address },
         data: {
@@ -63,6 +62,7 @@ app.post('/api/userdata', async (req, res) => {
     const netWorth = user.ethHoldings * multiplier;
 
     await redis.set(address, JSON.stringify({ name, netWorth, multiplier }), 'EX', 3600);
+    console.log(`Cached data for address: ${address}`);
 
     res.json({ name, netWorth, multiplier });
   } catch (error) {
@@ -73,6 +73,7 @@ app.post('/api/userdata', async (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
+    console.log("Received request for leaderboard");
     const users = await prisma.user.findMany();
     const userList = users.map(user => ({
       name: user.name,
