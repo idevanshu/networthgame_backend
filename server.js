@@ -12,7 +12,7 @@ app.use(cors());
 const prisma = new PrismaClient();
 const redis = new Redis();
 
-const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID';
+const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/8627168fd72846898c561bf658ff262a';
 const web3 = new Web3(infuraUrl);
 
 app.use(express.urlencoded({ extended: true }));
