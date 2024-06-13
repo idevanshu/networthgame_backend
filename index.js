@@ -1,4 +1,3 @@
-require('dotenv').config(); // Loads environment variables from .env file in development
 const express = require('express');
 const { Web3 } = require('web3');
 const { PrismaClient } = require('@prisma/client');
@@ -98,9 +97,5 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
 
 module.exports = app;
