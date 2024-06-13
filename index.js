@@ -1,5 +1,6 @@
+require('dotenv').config(); // Loads environment variables from .env file in development
 const express = require('express');
-const {Web3} = require('web3');
+const { Web3 } = require('web3');
 const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
 
@@ -21,8 +22,13 @@ const corsMiddleware = (req, res, next) => {
 app.use(corsMiddleware);
 
 const prisma = new PrismaClient();
-const redis = new Redis();  // Ensure configuration is correct for your environment
-const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/8627168fd72846898c561bf658ff262a'; // Ensure this is secured
+const redis = new Redis(process.env.REDIS_URL);  // Configured via environment variable
+const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/your-project-id'; // Ensure this is secured
+
+redis.on('error', (err) => {
+    console.error('Redis error:', err);
+});
+
 const web3 = new Web3(infuraUrl);
 
 app.use(express.urlencoded({ extended: true }));
@@ -71,7 +77,7 @@ app.post('/api/userdata', async (req, res) => {
         return res.json({ name, netWorth, multiplier });
     } catch (error) {
         console.error("Error fetching ETH balance or updating database:", error);
-        return res.status(500).send("Error fetching wallet information or updating database");
+        return res.status(500).send(`Error fetching wallet information or updating database: ${error.message}`);
     }
 });
 
@@ -88,8 +94,13 @@ app.get('/api/leaderboard', async (req, res) => {
         return res.json(userList);
     } catch (error) {
         console.error("Error fetching leaderboard data:", error);
-        return res.status(500).send("Error fetching leaderboard data");
+        return res.status(500).send(`Error fetching leaderboard data: ${error.message}`);
     }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
 
 module.exports = app;
