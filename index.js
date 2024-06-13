@@ -68,10 +68,10 @@ app.post('/api/userdata', async (req, res) => {
 
         await redis.set(address, JSON.stringify({ name, netWorth, multiplier }), 'EX', 3600);
 
-        res.json({ name, netWorth, multiplier });
+        return res.json({ name, netWorth, multiplier });
     } catch (error) {
         console.error("Error fetching ETH balance or updating database:", error);
-        res.status(500).send("Error fetching wallet information or updating database");
+        return res.status(500).send("Error fetching wallet information or updating database");
     }
 });
 
@@ -84,10 +84,11 @@ app.get('/api/leaderboard', async (req, res) => {
             multiplier: user.loginCount
         }));
         userList.sort((a, b) => b.netWorth - a.netWorth);
-        res.json(userList);
+
+        return res.json(userList);
     } catch (error) {
         console.error("Error fetching leaderboard data:", error);
-        res.status(500).send("Error fetching leaderboard data");
+        return res.status(500).send("Error fetching leaderboard data");
     }
 });
 
