@@ -4,8 +4,7 @@
   "description": "A Node.js project using Express, Prisma, Redis, and Web3",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "build": "echo 'No build step required for express apps'"
+    "start": "node index.js"
   },
   "engines": {
     "node": "18.20.3"
