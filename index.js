@@ -1,22 +1,24 @@
 const express = require('express');
-const {Web3} = require('web3'); 
+const {Web3} = require('web3');
 const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
 
 const app = express();
 
-// Custom CORS Middleware
-const allowCors = fn => async (req, res) => {
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRFToken, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+// Define CORS Middleware to allow requests from all domains
+const corsMiddleware = (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*'); // Allow all domains
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        res.sendStatus(204);
+    } else {
+        next();
     }
-    return await fn(req, res);
 };
+
+// Apply CORS middleware before your routes
+app.use(corsMiddleware);
 
 const prisma = new PrismaClient();
 const redis = new Redis();  // Ensure configuration is correct for your environment
@@ -30,7 +32,7 @@ function generateUserName(address) {
     return `User${address.slice(2, 6)}`;
 }
 
-app.post('/api/userdata', allowCors(async (req, res) => {
+app.post('/api/userdata', async (req, res) => {
     const { address } = req.body;
     const name = generateUserName(address);
 
@@ -71,9 +73,9 @@ app.post('/api/userdata', allowCors(async (req, res) => {
         console.error("Error fetching ETH balance or updating database:", error);
         res.status(500).send("Error fetching wallet information or updating database");
     }
-}));
+});
 
-app.get('/api/leaderboard', allowCors(async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
     try {
         const users = await prisma.user.findMany();
         const userList = users.map(user => ({
@@ -87,6 +89,6 @@ app.get('/api/leaderboard', allowCors(async (req, res) => {
         console.error("Error fetching leaderboard data:", error);
         res.status(500).send("Error fetching leaderboard data");
     }
-}));
+});
 
 module.exports = app;
