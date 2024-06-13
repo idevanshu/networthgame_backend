@@ -1,5 +1,5 @@
 const express = require('express');
-const Web3 = require('web3');
+const Web3 = require('web3'); // Corrected Web3 import
 const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
 
@@ -10,7 +10,7 @@ const allowCors = fn => async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRFToken, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
@@ -19,8 +19,8 @@ const allowCors = fn => async (req, res) => {
 };
 
 const prisma = new PrismaClient();
-const redis = new Redis();
-const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/8627168fd72846898c561bf658ff262a';
+const redis = new Redis();  // Ensure configuration is correct for your environment
+const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/8627168fd72846898c561bf658ff262a'; // Ensure this is secured
 const web3 = new Web3(infuraUrl);
 
 app.use(express.urlencoded({ extended: true }));
@@ -30,10 +30,9 @@ function generateUserName(address) {
     return `User${address.slice(2, 6)}`;
 }
 
-// Applying the custom CORS to specific routes
 app.post('/api/userdata', allowCors(async (req, res) => {
     const { address } = req.body;
-    const name = generateFreiendlyName(address);
+    const name = generateUserName(address);
 
     try {
         const balance = await web3.eth.getBalance(address);
