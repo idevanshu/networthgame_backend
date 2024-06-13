@@ -1,39 +1,39 @@
 const express = require('express');
-const {Web3} = require('web3'); // Corrected Web3 import
+const Web3 = require('web3');
 const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
-const cors = require('cors');
 
 const app = express();
 
-// Configure CORS
-app.use(cors({
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-    credentials: true,
-    origin: '*' // Consider specifying origins in production
-}));
-
-// Middleware for parsing application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
-// Middleware for parsing application/json
-app.use(express.json());
+// Custom CORS Middleware
+const allowCors = fn => async (req, res) => {
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+    return await fn(req, res);
+};
 
 const prisma = new PrismaClient();
 const redis = new Redis();
-
-const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/8627168fd72846898c561bf658ff262a'; // Replace your Infura Project ID
+const infuraUrl = process.env.INFURA_URL || 'https://mainnet.infura.io/v3/8627168fd72846898c561bf658ff262a';
 const web3 = new Web3(infuraUrl);
 
-// Generate a username from a wallet address
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 function generateUserName(address) {
     return `User${address.slice(2, 6)}`;
 }
 
-// Route for receiving and handling user data
-app.post('/api/userdata', async (req, inres) => {
+// Applying the custom CORS to specific routes
+app.post('/api/userdata', allowCors(async (req, res) => {
     const { address } = req.body;
-    const name = generateUserName(address);
+    const name = generateFreiendlyName(address);
 
     try {
         const balance = await web3.eth.getBalance(address);
@@ -72,10 +72,9 @@ app.post('/api/userdata', async (req, inres) => {
         console.error("Error fetching ETH balance or updating database:", error);
         res.status(500).send("Error fetching wallet information or updating database");
     }
-});
+}));
 
-// Leaderboard route to fetch and return leaderboard data
-app.get('/api/leaderboard', async (req, res) => {
+app.get('/api/leaderboard', allowCors(async (req, res) => {
     try {
         const users = await prisma.user.findMany();
         const userList = users.map(user => ({
@@ -89,13 +88,6 @@ app.get('/api/leaderboard', async (req, res) => {
         console.error("Error fetching leaderboard data:", error);
         res.status(500).send("Error fetching leaderboard data");
     }
-});
+}));
 
-// Set the port for the Express application
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
-
-// Export the app for testing purposes
 module.exports = app;
