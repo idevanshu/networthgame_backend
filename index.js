@@ -1,5 +1,5 @@
 const express = require('express');
-const Web3 = require('web3'); // Corrected Web3 import
+const {Web3} = require('web3'); 
 const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
 
